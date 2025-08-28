@@ -51,8 +51,56 @@ In ESR, raw signals often include a sloping or wavy background. Quantitative com
 ```bash
 # Python 3.10+
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -U pip
 
-# If using lmfit for models and scipy/numpy/pandas for IO & math:
-pip install numpy scipy pandas matplotlib lmfit
+
+```
+# Fit a Voigt line, auto-baseline, and integrate absorption over 3×FWHM:
+python -m esrproc fit-integrate \
+  --input data/example_esr.csv \
+  --units Oe \
+  --signal-kind derivative \
+  --model voigt \
+  --baseline asls --asls-lambda 1e6 --asls-p 0.001 \
+  --smooth-savgol 11 3 \
+  --out results/example_run.json \
+  --plot results/example_run.png
+
+  ```
+import pandas as pd
+from esrproc import Pipeline, BaselineAsLS, PeakModel
+
+df = pd.read_csv("data/example_esr.csv")  # columns: field, signal
+
+pipe = Pipeline(
+    signal_kind="derivative",             # or "absorption"
+    baseline=BaselineAsLS(lmbda=1e6, p=1e-3),
+    model=PeakModel(kind="voigt"),        # "gauss", "lorentz", "voigt"
+    smooth_savgol=(11, 3)                 # optional
+)
+
+result = pipe.run(df.field.values, df.signal.values, units="Oe")
+
+print(result.center, result.fwhm, result.area_3fwhm)
+print(result.window_bounds)  # (Bmin, Bmax)
+# result.as_dict() -> for JSON serialization
+```
+{
+  "file": "data/example_esr.csv",
+  "units": "Oe",
+  "signal_kind": "derivative",
+  "baseline": {"kind": "asls", "lambda": 1000000.0, "p": 0.001},
+  "model": "voigt",
+  "fit": {
+    "center": 3342.1,
+    "fwhm": 9.37,
+    "amplitude": 1.82,
+    "params": {"gauss_sigma": 3.8, "lorentz_gamma": 2.7},
+    "param_covariance_diag": {"center": 0.03, "fwhm": 0.05}
+  },
+  "window": {"min": 3332.0, "max": 3352.2, "width": 28.11},
+  "area_3fwhm": 124.6,
+  "area_uncertainty_est": 3.2,
+  "notes": "absorption reconstructed from derivative prior to integration",
+  "versions": {"numpy": "…", "scipy": "…", "lmfit": "…"}
+}
+
