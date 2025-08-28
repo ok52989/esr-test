@@ -1,0 +1,29 @@
+# ===============================
+# requirements.txt — ESR baseline + 3×FWHM integration tool
+# Install with:  pip install -r requirements.txt
+# ===============================
+
+# ---- Core runtime dependencies ----
+numpy>=1.24
+scipy>=1.10
+pandas>=1.5
+matplotlib>=3.7
+lmfit>=1.2
+
+# ---- Optional: CLI & UX niceties (only if you use them) ----
+# Uncomment if you implement a Typer-based CLI and rich text output.
+# typer>=0.12
+# rich>=13.7
+
+# ---- Dev & testing tools ----
+pytest>=7
+pytest-cov>=4
+black>=24
+ruff>=0.5
+mypy>=1.10
+pre-commit>=3.7
+
+# ---- Packaging (optional) ----
+# Uncomment if you plan to publish to PyPI.
+# build>=1.2
+# twine>=5.0
